@@ -1,9 +1,22 @@
-version: "3.4"
+version: '3.4'
 
 services:
+  db:
+    image: ${IMAGES_PREFIX:-}postgres:12
+    restart: always
+    depends_on:
+      - ssh-agent
+    environment:
+        POSTGRES_PASSWORD: password
+        POSTGRES_DB: dbtest
+    ports:
+        - 15432:5432
+
   php:
     image: ${IMAGES_PREFIX:-}app-php
     restart: unless-stopped
+    depends_on:
+      - ssh-agent
     volumes:
       - php_socket:/var/run/php
     environment:
@@ -13,7 +26,7 @@ services:
       SYMFONY_VERSION: ${SYMFONY_VERSION:-}
       STABILITY: ${STABILITY:-stable}
       # Run "composer require symfony/orm-pack" to install and configure Doctrine ORM
-      DATABASE_URL: postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-!ChangeMe!}@database:5432/${POSTGRES_DB:-app}?serverVersion=${POSTGRES_VERSION:-15}&charset=${POSTGRES_CHARSET:-utf8}
+      DATABASE_URL: ${DATABASE_URL}
       # Run "composer require symfony/mercure-bundle" to install and configure the Mercure integration
       MERCURE_URL: ${CADDY_MERCURE_URL:-http://caddy/.well-known/mercure}
       MERCURE_PUBLIC_URL: https://${SERVER_NAME:-localhost}/.well-known/mercure
@@ -48,13 +61,19 @@ services:
         published: ${HTTP3_PORT:-443}
         protocol: udp
 
-# Mercure is installed as a Caddy module, prevent the Flex recipe from installing another service
-###> symfony/mercure-bundle ###
-###< symfony/mercure-bundle ###
+  ssh-agent:
+    build:
+      context: ./docker/ssh-agent
+      dockerfile: Dockerfile
+    volumes:
+      - ~/.ssh:/root/.ssh
+    environment:
+      - SSH_AUTH_SOCK=/tmp/ssh-agent.sock
+      - SSH_KEY_NAME=${SSH_KEY_NAME}
+    command: >
+      /bin/sh -c "eval $(ssh-agent -s) && ssh-add /root/.ssh/${SSH_KEY_NAME} && tail -f /dev/null"
 
 volumes:
   php_socket:
   caddy_data:
   caddy_config:
-###> symfony/mercure-bundle ###
-###< symfony/mercure-bundle ###

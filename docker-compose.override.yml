@@ -1,4 +1,4 @@
-version: "3.4"
+version: '3.4'
 
 # Development environment override
 services:
@@ -24,6 +24,8 @@ services:
     build:
       context: .
       target: caddy_base
+    depends_on:
+      - ssh-agent
     volumes:
       - ./public:/srv/app/public:ro
       - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro

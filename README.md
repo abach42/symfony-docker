@@ -24,7 +24,11 @@ A [Docker](https://www.docker.com/)-based installer and runtime for the [Symfony
 * Just 2 services (PHP FPM and Caddy server)
 * Super-readable configuration
 
-**Enjoy!**
+## Trouble shooting
+
+### ERROR: failed to solve: error getting credentials - err: exit status 1, out: ``
+
+/symfony-docker/docker/ssh-agent$ docker build -t ssh-agent .
 
 ## Docs
 
